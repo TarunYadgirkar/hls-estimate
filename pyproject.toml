@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hls-estimate"
+version = "0.1.0"
+description = "Analytical FPGA resource/latency estimation and HLS C++ codegen for quantized PyTorch models, without synthesis."
+requires-python = ">=3.9"
+dependencies = ["numpy<2", "torch==2.2.2", "onnx"]
+
+[project.optional-dependencies]
+dev = ["pytest", "hypothesis"]
+
+[project.scripts]
+hls-estimate = "hls_estimate.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["hls_estimate*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]
