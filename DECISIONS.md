@@ -56,6 +56,22 @@ Tests must be deterministic and offline. Published literature numbers are captur
 into `references/literature.json` (with citations); the calibration test reads that file.
 The error band is stated honestly in MODEL.md and asserted in the test.
 
+## D9 — Calibration targets: hls4ml, not FINN
+FINN's published BNN-PYNQ numbers (CNV-W1A1 etc.) are 1-bit/2-bit binarized networks
+implemented as XNOR-popcount in LUT fabric, with no DSP MACs at all. Our model has no
+1-bit datapath and would be meaningless there. hls4ml's fixed-point designs are a
+genuine apples-to-apples target: their "reuse factor" is exactly the inverse of our
+`unroll` knob. Chose 2 networks (jet tagger MLP + SVHN CNN), 3 configurations.
+Numbers quoted verbatim from the papers into `models/literature.py`.
+
+## D10 — LUT/FF coefficients are fitted, and labelled as fitted
+The initial hand-guessed LUT/FF constants were ~4x too high vs published data. Rather
+than ship known-bad constants or silently tune them, they are fitted to one reference
+design and MODEL.md states plainly which entry is a fit (not a validation) and which
+entries are independent. The independent CNN check is 2.6x/3.75x off and is reported
+as such. Bands in the test are set from measured ratios so the test is a regression
+guard, not a restatement of the constants.
+
 ## D8 — DSE returns a Pareto front over (latency, total-resource-fraction)
 Budget = per-device caps on {LUT, FF, DSP, BRAM}. DSE enumerates knob configs, drops any
 config exceeding ANY device cap, then returns the non-dominated set trading latency vs.

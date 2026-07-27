@@ -12,6 +12,7 @@ Everything pulled into this project from outside, with what it is and why.
 | onnx | latest | ONNX model format | Optional second frontend (ONNX ingest). |
 | pytest | 9.1.1 | Test runner | Acceptance test suite. |
 | hypothesis | 6.161.7 | Property-based testing | Randomized monotonicity / invariant tests. |
+| pypdf | 6.14.2 | PDF text extraction | One-off: pulled the published resource tables out of the hls4ml papers to build `models/literature.py`. Not needed at runtime or test time. |
 | clang++ (Apple clang 17, via `g++`/`clang++`) | 17.0.0 | C++ compiler | Compile emitted HLS C++ as plain C++ (pragmas ignored) for the bit-exact correctness test. |
 
 ## Not installed / not required
