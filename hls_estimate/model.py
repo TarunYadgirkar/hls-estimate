@@ -21,12 +21,17 @@ MACS_PER_DSP = {2: 4, 4: 2, 8: 1, 16: 1}
 BRAM18_BITS = 18 * 1024          # 18 Kb
 BRAM18_WIDTH = 18                # widest single-port width used for the depth calc
 
-# --- LUT/FF datapath constants (coarse; calibrated in MODEL.md §LUT/FF) -----
+# --- LUT/FF datapath constants ---------------------------------------------
+# FITTED, not derived. Least-squares-ish fit to the hls4ml jet tagger (16-bit, reuse
+# factor 1, no DSP saturation) from arXiv:1804.06913 Table 2 -- see MODEL.md
+# §Calibration. Two data points only, so treat these as order-of-magnitude.
+# The LUT:FF split (~2:1, LUT-heavy) comes from arXiv:2101.05108 Table 3, the one
+# reference that reports LUT and FF separately.
 LUT_BASE = 120
-LUT_PER_LANE = 6.0               # LUT per MAC lane per weight-bit
+LUT_PER_LANE = 2.75              # LUT per MAC lane per weight-bit
 LUT_REQUANT = 90
 FF_BASE = 100
-FF_PER_LANE = 5.0                # FF per MAC lane per (w+a) bit
+FF_PER_LANE = 0.69               # FF per MAC lane per (w+a) bit
 FF_REQUANT = 64
 ELTWISE_LUT_PER_LANE = 8
 ELTWISE_FF_PER_LANE = 8
@@ -187,5 +192,7 @@ def estimate_graph(graph) -> GraphEstimate:
         "latency": max((le.latency for le in per_layer), default=0),
         "latency_seq": sum(le.latency for le in per_layer),
     }
+    # Some papers report combined "Logic (LUT + FF)" rather than the two separately.
+    totals["logic"] = totals["lut"] + totals["ff"]
     bottleneck = max(per_layer, key=lambda le: le.latency).name if per_layer else ""
     return GraphEstimate(per_layer, totals, bottleneck)
