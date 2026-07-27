@@ -27,11 +27,11 @@ def _buffer_name(tensor: str) -> str:
     return f"buf_{tensor}"
 
 
-def emit_graph(graph, name: str = "net") -> str:
+def emit_graph(graph, name: str = "net", elide_weights: bool = False) -> str:
     """Emit layer functions plus the DATAFLOW top-level function."""
     parts = [HEADER]
     for node in graph.nodes:
-        parts.append(emit_layer(node))
+        parts.append(emit_layer(node, elide_weights))
 
     specs = graph.tensors()
     in_name = graph.input_spec.name
@@ -84,6 +84,6 @@ int main() {{
 """
 
 
-def emit_full(graph, name: str = "net") -> str:
+def emit_full(graph, name: str = "net", elide_weights: bool = False) -> str:
     """Top function + test bench in one translation unit (used by the tests)."""
-    return emit_graph(graph, name) + emit_testbench(graph, name)
+    return emit_graph(graph, name, elide_weights) + emit_testbench(graph, name)

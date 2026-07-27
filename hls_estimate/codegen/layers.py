@@ -14,8 +14,12 @@ def qrange(bits: int, relu: bool = False) -> tuple[int, int]:
     return (0 if relu else -(1 << (bits - 1))), (1 << (bits - 1)) - 1
 
 
-def format_array(name: str, values, per_line: int = 16) -> str:
+def format_array(name: str, values, per_line: int = 16, elide: bool = False) -> str:
     flat = [int(v) for v in values.reshape(-1)]
+    if elide:
+        # Structure-only rendering for docs/UI: identical apart from the literals.
+        return (f"static const data_t {name}[{len(flat)}] = {{\n"
+                f"  /* {len(flat)} quantized weights elided */\n}};")
     lines, out = [], []
     for i in range(0, len(flat), per_line):
         lines.append("  " + ", ".join(str(v) for v in flat[i:i + per_line]))
@@ -43,17 +47,17 @@ def _pipeline(knobs, indent: str) -> str:
            f"{indent}#pragma HLS PIPELINE off"
 
 
-def emit_conv(n: Conv2d) -> str:
+def emit_conv(n: Conv2d, elide: bool = False) -> str:
     oh, ow = n.out_h(), n.out_w()
     in_elems = n.in_ch * n.in_h * n.in_w
     out_elems = n.out_ch * oh * ow
     w_name = f"{n.name}_w"
     u = max(1, n.knobs.unroll)
     body = [
-        format_array(w_name, n.weight),
+        format_array(w_name, n.weight, elide=elide),
     ]
     if n.bias and n.bias_data is not None:
-        body.append(format_array(f"{n.name}_b", n.bias_data))
+        body.append(format_array(f"{n.name}_b", n.bias_data, elide=elide))
     body.append(f"""
 static void layer_{n.name}(const data_t in[{in_elems}], data_t out[{out_elems}]) {{
 #pragma HLS ARRAY_PARTITION variable={w_name} cyclic factor={u} dim=1
@@ -86,12 +90,12 @@ static void layer_{n.name}(const data_t in[{in_elems}], data_t out[{out_elems}])
     return "\n".join(body)
 
 
-def emit_linear(n: Linear) -> str:
+def emit_linear(n: Linear, elide: bool = False) -> str:
     w_name = f"{n.name}_w"
     u = max(1, n.knobs.unroll)
-    body = [format_array(w_name, n.weight)]
+    body = [format_array(w_name, n.weight, elide=elide)]
     if n.bias and n.bias_data is not None:
-        body.append(format_array(f"{n.name}_b", n.bias_data))
+        body.append(format_array(f"{n.name}_b", n.bias_data, elide=elide))
     body.append(f"""
 static void layer_{n.name}(const data_t in[{n.in_features}], data_t out[{n.out_features}]) {{
 #pragma HLS ARRAY_PARTITION variable={w_name} cyclic factor={u} dim=1
@@ -111,7 +115,7 @@ static void layer_{n.name}(const data_t in[{n.in_features}], data_t out[{n.out_f
     return "\n".join(body)
 
 
-def emit_relu(n: ReLU) -> str:
+def emit_relu(n: ReLU, elide: bool = False) -> str:
     qmin, qmax = qrange(n.bits, relu=True)
     u = max(1, n.knobs.unroll)
     return f"""
@@ -127,7 +131,7 @@ static void layer_{n.name}(const data_t in[{n.numel}], data_t out[{n.numel}]) {{
 }}"""
 
 
-def emit_maxpool(n: MaxPool2d) -> str:
+def emit_maxpool(n: MaxPool2d, elide: bool = False) -> str:
     oh, ow = n.out_h(), n.out_w()
     in_elems = n.in_ch * n.in_h * n.in_w
     out_elems = n.in_ch * oh * ow
@@ -154,7 +158,7 @@ static void layer_{n.name}(const data_t in[{in_elems}], data_t out[{out_elems}])
 }}"""
 
 
-def emit_add(n: Add) -> str:
+def emit_add(n: Add, elide: bool = False) -> str:
     qmin, qmax = qrange(n.bits)
     u = max(1, n.knobs.unroll)
     return f"""
@@ -180,8 +184,8 @@ EMITTERS = {
 }
 
 
-def emit_layer(node) -> str:
+def emit_layer(node, elide: bool = False) -> str:
     try:
-        return EMITTERS[type(node)](node)
+        return EMITTERS[type(node)](node, elide)
     except KeyError:
         raise TypeError(f"no emitter for {type(node).__name__}")
