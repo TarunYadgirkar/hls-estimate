@@ -7,6 +7,7 @@ import {
   ff,
   latencyCycles,
   lut,
+  work,
   type Device,
   type Graph,
   type Knobs,
@@ -26,13 +27,11 @@ export type DesignPoint = {
   utilisation: number;
 };
 
-function maxParallel(node: Node): number {
+/** Largest sensible unroll for a layer. Mirrors _max_parallel in dse.py. */
+export function maxParallel(node: Node): number {
   if (node.kind === "conv2d") return node.inCh * node.kh * node.kw;
   if (node.kind === "linear") return node.inFeatures;
-  if (node.kind === "maxpool2d") {
-    return Math.max(1, node.inCh * node.kh * node.kw);
-  }
-  return Math.max(1, node.numel);
+  return Math.max(1, work(node));
 }
 
 function pow2Upto(limit: number): number[] {
@@ -131,6 +130,19 @@ function* product(grid: Knobs[][]): Generator<Knobs[]> {
     if (d < 0) return;
   }
 }
+
+/** Total configurations in the space, before the MAX_CONFIGS cap. */
+export function spaceSize(graph: Graph, knobGrid?: Knobs[][]): number {
+  const grid = knobGrid ?? defaultKnobGrid(graph);
+  return grid.reduce((acc, opts) => acc * opts.length, 1);
+}
+
+/** True when the space is larger than explore() will actually evaluate. */
+export function isTruncated(graph: Graph, knobGrid?: Knobs[][]): boolean {
+  return spaceSize(graph, knobGrid) > MAX_CONFIGS;
+}
+
+export { MAX_CONFIGS };
 
 export function explore(
   graph: Graph,

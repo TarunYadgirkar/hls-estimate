@@ -81,4 +81,28 @@ def mlp_int4():
     return _wrap(g)
 
 
-ALL_EXAMPLES = [tiny_conv, conv_relu_pool, tiny_linear, residual, mlp_int4]
+def cnn_small():
+    """A realistic small CIFAR-style classifier that does NOT fit a Zynq-7020 at
+    full parallelism: 683 MAC lanes against a 220-DSP budget."""
+    rng = np.random.default_rng(6)
+    c0 = Conv2d(in_ch=3, out_ch=16, kh=3, kw=3, in_h=16, in_w=16, pad=1, stride=1,
+                w_bits=8, a_bits=8, out_bits=8, bias=False, relu=True,
+                mult=1, shift=6, name="conv0", inputs=("x",), output="c0",
+                weight=_w(rng, (16, 3, 3, 3)))
+    p0 = MaxPool2d(in_ch=16, in_h=16, in_w=16, kh=2, kw=2, stride=2, bits=8,
+                   name="pool0", inputs=("c0",), output="p0")
+    c1 = Conv2d(in_ch=16, out_ch=32, kh=3, kw=3, in_h=8, in_w=8, pad=1, stride=1,
+                w_bits=8, a_bits=8, out_bits=8, bias=False, relu=True,
+                mult=1, shift=6, name="conv1", inputs=("p0",), output="c1",
+                weight=_w(rng, (32, 16, 3, 3)))
+    p1 = MaxPool2d(in_ch=32, in_h=8, in_w=8, kh=2, kw=2, stride=2, bits=8,
+                   name="pool1", inputs=("c1",), output="p1")
+    fc = Linear(in_features=32 * 4 * 4, out_features=10, w_bits=8, a_bits=8,
+                out_bits=8, bias=True, relu=False, mult=1, shift=6, name="fc",
+                inputs=("p1",), output="y",
+                weight=_w(rng, (10, 512)), bias_data=_w(rng, (10,), -2, 2))
+    g = Graph([c0, p0, c1, p1, fc], TensorSpec((1, 3, 16, 16), name="x"), fc.out_spec())
+    return _wrap(g)
+
+
+ALL_EXAMPLES = [tiny_conv, conv_relu_pool, tiny_linear, residual, mlp_int4, cnn_small]

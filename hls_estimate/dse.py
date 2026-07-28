@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import itertools
 import math
+import warnings
 from dataclasses import dataclass, field
 
 from .devices import DeviceBudget
@@ -123,9 +124,21 @@ def explore(graph, device: DeviceBudget, knob_grid=None) -> list[DesignPoint]:
         point = evaluate(graph, config, device)
         if point.fits:
             feasible.append(point)
+    if truncated(graph, grid):
+        # Never let a bounded search read as exhaustive coverage.
+        warnings.warn(
+            f"design space truncated: {space_size(graph, grid):,} configurations "
+            f"exist, only the first {MAX_CONFIGS:,} were evaluated",
+            stacklevel=2)
     return pareto_front(feasible) if feasible else []
 
 
-def truncated(graph, knob_grid=None) -> bool:
+def space_size(graph, knob_grid=None) -> int:
+    """Total number of knob configurations, before the MAX_CONFIGS cap."""
     grid = knob_grid or default_knob_grid(graph)
-    return math.prod(len(opts) for opts in grid) > MAX_CONFIGS
+    return math.prod(len(opts) for opts in grid) if grid else 0
+
+
+def truncated(graph, knob_grid=None) -> bool:
+    """True when the space is larger than the estimator will actually evaluate."""
+    return space_size(graph, knob_grid) > MAX_CONFIGS

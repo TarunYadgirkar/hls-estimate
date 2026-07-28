@@ -23,7 +23,7 @@ import { EXAMPLES } from "./examples";
 type LayerCase = (typeof golden.layers)[number];
 
 function nodeFor(c: LayerCase): Node {
-  const s = c.spec as Record<string, number>;
+  const s = c.spec as unknown as Record<string, number>;
   switch (c.kind) {
     case "conv2d":
       return makeConv2d(s);

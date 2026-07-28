@@ -1,26 +1,154 @@
 @import "tailwindcss";
 
+/*
+  hls-estimate — visual system.
+  Subject: silicon. Substrate graphite, bone text, indigo structure, phosphor teal
+  for "this fits", amber for "this overflows". Iridescence is spent only on the
+  device floorplan; everything else stays quiet.
+*/
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --substrate: #14161c;
+  --substrate-2: #1a1d25;
+  --substrate-3: #21252f;
+  --edge: #2c313d;
+  --edge-bright: #3a4152;
+  --bone: #e8e6e1;
+  --muted: #8a8f9a;
+  --muted-dim: #626874;
+  --trace: #6c7bf7;
+  --signal: #38e2c8;
+  --over: #ff9142;
+
+  --die-empty: #232833;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-substrate: var(--substrate);
+  --color-substrate-2: var(--substrate-2);
+  --color-substrate-3: var(--substrate-3);
+  --color-edge: var(--edge);
+  --color-edge-bright: var(--edge-bright);
+  --color-bone: var(--bone);
+  --color-muted: var(--muted);
+  --color-muted-dim: var(--muted-dim);
+  --color-trace: var(--trace);
+  --color-signal: var(--signal);
+  --color-over: var(--over);
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-plex-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--substrate);
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--substrate);
+  color: var(--bone);
+  font-family: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Numbers must not jitter while a slider is dragged. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Datasheet-style section marker. */
+.eyebrow {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted-dim);
+}
+
+.panel {
+  background: var(--substrate-2);
+  border: 1px solid var(--edge);
+  border-radius: 4px;
+}
+
+/* Fine substrate grid, like a die photo under low magnification. */
+.substrate-grid {
+  background-image:
+    linear-gradient(to right, rgba(108, 123, 247, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(108, 123, 247, 0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Range input, restyled as an instrument control. */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 22px;
+  background: transparent;
+  cursor: ew-resize;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px;
+  background: var(--edge-bright);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 20px;
+  margin-top: -9px;
+  border-radius: 1px;
+  background: var(--bone);
+  border: 1px solid var(--substrate);
+  box-shadow: 0 0 0 1px var(--edge-bright);
+}
+input[type="range"]:active::-webkit-slider-thumb {
+  background: var(--signal);
+}
+input[type="range"]::-moz-range-track {
+  height: 2px;
+  background: var(--edge-bright);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 20px;
+  border-radius: 1px;
+  background: var(--bone);
+  border: 1px solid var(--substrate);
+}
+
+::selection {
+  background: var(--trace);
+  color: var(--bone);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.link {
+  color: var(--trace);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: color 0.15s;
+}
+.link:hover {
+  color: var(--bone);
 }

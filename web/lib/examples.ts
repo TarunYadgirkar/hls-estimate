@@ -167,4 +167,68 @@ export const EXAMPLES: Record<string, Example> = {
   },
 };
 
+EXAMPLES.cnn_small = {
+  key: "cnn_small",
+  label: "cnn_small",
+  blurb:
+    "A realistic CIFAR-style classifier: two conv blocks and a dense head. At full parallelism it wants 683 multiply lanes against a Zynq-7020's 220 DSPs — watch it overflow the die.",
+  inputShape: [1, 3, 16, 16],
+  build: () => ({
+    nodes: [
+      wire(
+        makeConv2d(
+          {
+            in_ch: 3, out_ch: 16, kh: 3, kw: 3, in_h: 16, in_w: 16,
+            pad: 1, stride: 1, w_bits: 8, relu: 1, shift: 6,
+          },
+          "conv0",
+          k(),
+        ),
+        ["x"],
+        "c0",
+      ),
+      wire(
+        makeMaxPool2d(
+          { in_ch: 16, in_h: 16, in_w: 16, kh: 2, kw: 2, stride: 2, bits: 8 },
+          "pool0",
+          k(),
+        ),
+        ["c0"],
+        "p0",
+      ),
+      wire(
+        makeConv2d(
+          {
+            in_ch: 16, out_ch: 32, kh: 3, kw: 3, in_h: 8, in_w: 8,
+            pad: 1, stride: 1, w_bits: 8, relu: 1, shift: 6,
+          },
+          "conv1",
+          k(),
+        ),
+        ["p0"],
+        "c1",
+      ),
+      wire(
+        makeMaxPool2d(
+          { in_ch: 32, in_h: 8, in_w: 8, kh: 2, kw: 2, stride: 2, bits: 8 },
+          "pool1",
+          k(),
+        ),
+        ["c1"],
+        "p1",
+      ),
+      wire(
+        makeLinear(
+          { in_features: 512, out_features: 10, w_bits: 8, bias: 1, shift: 6 },
+          "fc",
+          k(),
+        ),
+        ["p1"],
+        "y",
+      ),
+    ],
+    inputShape: [1, 3, 16, 16],
+  }),
+};
+
 export const EXAMPLE_LIST = Object.values(EXAMPLES);
