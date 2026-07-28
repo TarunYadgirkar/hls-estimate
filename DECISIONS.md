@@ -72,6 +72,31 @@ entries are independent. The independent CNN check is 2.6x/3.75x off and is repo
 as such. Bands in the test are set from measured ratios so the test is a regression
 guard, not a restatement of the constants.
 
+## D11 — Web UI ports the model to TypeScript, with enforced parity
+The UI needs sub-frame response to a slider drag, which rules out a round trip to a
+Python backend (and torch is far too large for a serverless function anyway). So
+`web/lib/{model,codegen,dse}.ts` are hand ports of the Python modules.
+
+Duplication is a real hazard, so it is pinned: `scripts/gen_golden.py` emits golden
+vectors from the Python source of truth (60 layer cases, 6 graph estimates, 20 emitted
+C++ files, 10 DSE fronts) and 118 vitest cases assert exact equality. Mutating one TS
+constant by 0.01 fails 19 of them; the emitter comparison is byte-for-byte. Python
+stays the source of truth — if parity breaks, the port is wrong, never the golden file.
+
+This already earned its keep: the parity test caught two genuine port bugs (wrong
+tensor wiring in the web examples, and a `maxParallel` that disagreed with `dse.py`
+for pooling layers).
+
+## D12 — CSP allows 'unsafe-inline' for scripts, and says so
+The global web-security rules ask for a nonce-based CSP. Next.js App Router emits
+inline bootstrap and RSC-payload scripts on every page, so a nonce requires middleware,
+which forces dynamic rendering and gives up full static prerendering for a site that is
+otherwise 100% static. Given the app has no user data, no auth, no forms and no
+network calls, that trade is not worth it here. Everything else is locked down:
+`default-src 'self'`, `object-src 'none'`, `frame-ancestors 'none'`, `form-action
+'none'`, `base-uri 'self'`, plus HSTS/nosniff/frame-deny/referrer/permissions headers.
+Recorded rather than quietly skipped.
+
 ## D8 — DSE returns a Pareto front over (latency, total-resource-fraction)
 Budget = per-device caps on {LUT, FF, DSP, BRAM}. DSE enumerates knob configs, drops any
 config exceeding ANY device cap, then returns the non-dominated set trading latency vs.
