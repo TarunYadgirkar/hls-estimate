@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://hls-estimate.vercel.app/sitemap.xml

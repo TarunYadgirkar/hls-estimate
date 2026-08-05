@@ -5,6 +5,15 @@ export const metadata: Metadata = {
   title: "What is this? — hls-estimate",
   description:
     "A plain-language explanation of what hls-estimate does, who it is for, and what an FPGA resource estimate actually means.",
+  alternates: { canonical: "/what-is-this" },
+  openGraph: {
+    title: "What is this? — hls-estimate",
+    description:
+      "A plain-language explanation of what hls-estimate does, who it is for, and what an FPGA resource estimate actually means.",
+    url: "/what-is-this",
+    siteName: "hls-estimate",
+    type: "website",
+  },
 };
 
 export default function WhatIsThis() {

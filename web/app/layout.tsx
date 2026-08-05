@@ -17,10 +17,34 @@ const plexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
+const SITE_URL = "https://hls-estimate.vercel.app";
+const SITE_TITLE = "hls-estimate — will it fit?";
+const SITE_DESCRIPTION =
+  "Predict FPGA resource usage and latency for a quantized neural network, and generate synthesizable HLS C++, without running synthesis.";
+
 export const metadata: Metadata = {
-  title: "hls-estimate — will it fit?",
-  description:
-    "Predict FPGA resource usage and latency for a quantized neural network, and generate synthesizable HLS C++, without running synthesis.",
+  metadataBase: new URL(SITE_URL),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    url: "/",
+    siteName: "hls-estimate",
+    type: "website",
+  },
+  twitter: { card: "summary" },
+};
+
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "hls-estimate",
+  description: SITE_DESCRIPTION,
+  url: SITE_URL,
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: "Any",
 };
 
 const NAV = [
@@ -35,6 +59,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`}>
       <body className="min-h-screen antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+        />
         <header className="sticky top-0 z-50 border-b border-edge bg-substrate/85 backdrop-blur-md">
           <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-5 py-3 sm:gap-6 sm:px-8">
             <Link

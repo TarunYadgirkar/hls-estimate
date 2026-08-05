@@ -5,6 +5,15 @@ export const metadata: Metadata = {
   title: "The model — hls-estimate",
   description:
     "Every assumption behind the analytical resource model, with the measured error against published hls4ml results.",
+  alternates: { canonical: "/model" },
+  openGraph: {
+    title: "The model — hls-estimate",
+    description:
+      "Every assumption behind the analytical resource model, with the measured error against published hls4ml results.",
+    url: "/model",
+    siteName: "hls-estimate",
+    type: "website",
+  },
 };
 
 type CalRow = {

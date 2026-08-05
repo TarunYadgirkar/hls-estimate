@@ -1,0 +1,15 @@
+# hls-estimate
+
+> Predict FPGA resource usage (LUT, FF, DSP, BRAM) and latency for a small quantized neural network, and generate synthesizable Vitis HLS C++ — without running synthesis. The analytical model's assumptions and measured error are written down, including the places it is 161% and 275% wrong.
+
+Targets Zynq-7020, Ultra96 (ZU3EG), and PYNQ-Z2. The web estimator runs entirely in the browser; the same model ships as a Python package with a torch.fx frontend and a CLI.
+
+## Pages
+
+- [Estimator](https://hls-estimate.vercel.app/): pick an example network, a device, an unroll factor, and weight bits; see utilisation bars, a live device floorplan, per-layer estimates, the generated HLS C++, and the design-space Pareto front.
+- [What is this?](https://hls-estimate.vercel.app/what-is-this): plain-language explanation of what the tool does and who it is for.
+- [The model](https://hls-estimate.vercel.app/model): every assumption behind the analytical resource model, with measured error against published hls4ml results.
+
+## Source
+
+- [GitHub repository](https://github.com/TarunYadgirkar/hls-estimate): Python package, CLI, tests, and this web UI.
