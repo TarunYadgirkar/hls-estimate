@@ -25,16 +25,22 @@ export function Workbench({
   const refs = useRef<Partial<Record<Tab, HTMLButtonElement | null>>>({});
 
   function onKeyDown(e: React.KeyboardEvent) {
-    const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-    if (!step) return;
+    const current = TABS.indexOf(tab);
+    const target: Record<string, number> = {
+      ArrowRight: (current + 1) % TABS.length,
+      ArrowLeft: (current - 1 + TABS.length) % TABS.length,
+      Home: 0,
+      End: TABS.length - 1,
+    };
+    if (!(e.key in target)) return;
     e.preventDefault();
-    const next = TABS[(TABS.indexOf(tab) + step + TABS.length) % TABS.length];
+    const next = TABS[target[e.key]];
     onTab(next);
     refs.current[next]?.focus();
   }
 
   return (
-    <section className="mt-14" aria-label="Details">
+    <section className="mt-14">
       <div
         role="tablist"
         aria-label="Details"
@@ -70,6 +76,7 @@ export function Workbench({
       <div
         id="workbench-panel"
         role="tabpanel"
+        tabIndex={0}
         aria-labelledby={tabId(tab)}
         className="pt-7"
       >
