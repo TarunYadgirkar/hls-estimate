@@ -5,6 +5,8 @@ PyTorch model, and emit synthesizable Vitis HLS C++ — **without running synthe
 
 **Live tool: [hls-estimate.vercel.app](https://hls-estimate.vercel.app)**
 
+![The web estimator: raising parallelism on cnn_small until it overflows a Zynq-7020, then backing off and switching to int4 weights](assets/generated/hls-estimate-web.gif)
+
 Vitis HLS is *not* required. If it happens to be installed, `--validate` says so and
 points at the emitted code; otherwise everything here is analytical.
 
@@ -32,6 +34,9 @@ Run the tests:
 .venv/bin/python -m pytest -q
 ```
 
+The bit-exactness tests compile emitted C++ into the system temp directory. Set
+`HLS_SCRATCH=/some/dir` to put those binaries somewhere else.
+
 ## Usage
 
 ```bash
@@ -43,6 +48,8 @@ Estimate a model against a device and get a fit verdict:
 ```bash
 .venv/bin/python -m hls_estimate.cli estimate cnn_small --device zynq-7020
 ```
+
+![CLI estimate for cnn_small on a Zynq-7020](assets/generated/hls-estimate-cli.gif)
 
 ```text
 target: zynq-7020
