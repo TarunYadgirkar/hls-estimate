@@ -6,11 +6,8 @@ import shutil
 import subprocess
 import tempfile
 
-SCRATCH = os.environ.get(
-    "HLS_SCRATCH",
-    "/private/tmp/claude-502/-Users-tarunyadgirkar-Claude/"
-    "813aea1b-3bbf-4484-86ca-d5f8260f201b/scratchpad",
-)
+# Where compiled test binaries go. Unset means the system temp dir.
+SCRATCH = os.environ.get("HLS_SCRATCH") or None
 
 
 def cxx() -> str | None:
@@ -28,6 +25,8 @@ def compile_cpp(source: str, workdir: str | None = None) -> str:
     """
     compiler = cxx()
     assert compiler, "no C++ compiler (clang++/g++) available"
+    if SCRATCH:
+        os.makedirs(SCRATCH, exist_ok=True)
     workdir = workdir or tempfile.mkdtemp(prefix="hlsest_", dir=SCRATCH)
     os.makedirs(workdir, exist_ok=True)
     src = os.path.join(workdir, "net.cpp")
