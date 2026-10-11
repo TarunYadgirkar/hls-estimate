@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BackToEstimator, DefList, Lede, Mono, PageTitle, Section } from "@/components/Prose";
 
 export const metadata: Metadata = {
-  title: "What is this? — hls-estimate",
+  title: "What is this? hls-estimate",
   description:
     "A plain-language explanation of what hls-estimate does, who it is for, and what an FPGA resource estimate actually means.",
   alternates: { canonical: "/what-is-this" },
   openGraph: {
-    title: "What is this? — hls-estimate",
+    title: "What is this? hls-estimate",
     description:
       "A plain-language explanation of what hls-estimate does, who it is for, and what an FPGA resource estimate actually means.",
     url: "/what-is-this",
@@ -19,22 +20,19 @@ export const metadata: Metadata = {
 export default function WhatIsThis() {
   return (
     <main className="mx-auto max-w-[760px] px-5 pb-4 pt-12 sm:px-8">
-      <p className="eyebrow">orientation</p>
-      <h1 className="mt-3 font-mono text-[2.2rem] font-semibold leading-[1.1] tracking-tight sm:text-[2.8rem]">
-        What is this?
-      </h1>
-      <p className="mt-6 text-[17px] leading-relaxed text-muted">
+      <PageTitle>What is this?</PageTitle>
+      <Lede>
         A tool that answers one question about putting a small neural network on an
         FPGA: <span className="text-bone">will it fit, and how fast will it run?</span>{" "}
         It answers in milliseconds, in a browser, without the hours of synthesis that
         would normally be required.
-      </p>
+      </Lede>
 
       <Section title="The problem it solves">
         <p>
           Running a neural network on an FPGA means turning it into a circuit. The usual
           way to find out whether that circuit fits on your chip is to write the code,
-          run it through a synthesis tool like Vitis HLS, and wait — often tens of
+          run it through a synthesis tool like Vitis HLS, and wait, often tens of
           minutes for a small design, hours for a real one. Then you change one
           parameter and wait again.
         </p>
@@ -55,15 +53,15 @@ export default function WhatIsThis() {
           An FPGA is a chip full of blank hardware you configure into whatever circuit
           you need. It comes in four currencies, and you can run out of any of them:
         </p>
-        <Definitions
+        <DefList
           items={[
             [
               "LUT",
-              "Look-up tables — the general-purpose logic. Anything that is not arithmetic or memory ends up here.",
+              "Look-up tables, the general-purpose logic. Anything that is not arithmetic or memory ends up here.",
             ],
             [
               "FF",
-              "Flip-flops — one-bit registers that hold values between clock ticks. Pipelining spends these.",
+              "Flip-flops, the one-bit registers that hold values between clock ticks. Pipelining spends these.",
             ],
             [
               "DSP",
@@ -71,12 +69,12 @@ export default function WhatIsThis() {
             ],
             [
               "BRAM",
-              "Block RAM — on-chip memory for weights and intermediate activations. Counted in 18-kilobit units.",
+              "Block RAM, the on-chip memory for weights and intermediate activations. Counted in 18-kilobit units.",
             ],
           ]}
         />
         <p>
-          A Zynq-7020 — the chip on a PYNQ-Z2 board, a common starting point — has 220
+          A Zynq-7020 (the chip on a PYNQ-Z2 board, a common starting point) has 220
           DSPs. That is the entire multiplier budget for your network.
         </p>
       </Section>
@@ -85,8 +83,8 @@ export default function WhatIsThis() {
         <p>
           <span className="text-bone">Parallelism.</span> A convolution is millions of
           multiplications. You can build one multiplier and feed it every operation in
-          turn — small and slow. You can build a thousand and do a thousand at once —
-          fast and enormous. The <Mono>unroll</Mono> control on the estimator is exactly
+          turn, which is small and slow. You can build a thousand and do a thousand at
+          once, which is fast and enormous. The <Mono>unroll</Mono> control on the estimator is exactly
           this dial.
         </p>
         <p>
@@ -105,13 +103,13 @@ export default function WhatIsThis() {
         </p>
         <p>
           So halving the precision roughly halves the DSP bill. Switch the estimator to{" "}
-          <Mono>int4</Mono> and watch the DSP column drop by half — that is not a
-          decoration, it is the packing model doing its job.
+          <Mono>int4</Mono> and watch the DSP count drop by half. That drop is the
+          packing model at work.
         </p>
       </Section>
 
       <Section title="What the tool actually gives you">
-        <Definitions
+        <DefList
           items={[
             [
               "An estimate",
@@ -162,51 +160,15 @@ export default function WhatIsThis() {
           random inputs. Same accumulation, same rounding, same clamping.
         </p>
         <p>
-          That test is checked for teeth, too — deliberately breaking the rounding in the
-          emitter makes five of its six cases fail, which is how you know it would catch
-          a real bug rather than passing on principle.
+          That test has been checked too: deliberately breaking the rounding in the
+          emitter makes five of its six cases fail, so it would catch a real bug.
         </p>
       </Section>
 
-      <div className="mt-14 border-t border-edge pt-8">
-        <Link className="link font-mono text-sm" href="/">
-          ← back to the estimator
-        </Link>
-      </div>
+      <BackToEstimator />
     </main>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="mt-12">
-      <h2 className="font-mono text-lg font-semibold tracking-tight text-bone">
-        {title}
-      </h2>
-      <div className="mt-4 flex flex-col gap-4 text-[15px] leading-relaxed text-muted [&_em]:text-bone [&_em]:not-italic">
-        {children}
-      </div>
-    </section>
-  );
-}
 
-function Definitions({ items }: { items: [string, string][] }) {
-  return (
-    <dl className="my-1 flex flex-col gap-3 border-l border-edge pl-5">
-      {items.map(([term, body]) => (
-        <div key={term}>
-          <dt className="font-mono text-[13px] text-bone">{term}</dt>
-          <dd className="mt-1 text-[14px] leading-relaxed text-muted">{body}</dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
 
-function Mono({ children }: { children: React.ReactNode }) {
-  return (
-    <code className="rounded-[2px] bg-substrate-3 px-1.5 py-0.5 font-mono text-[13px] text-bone">
-      {children}
-    </code>
-  );
-}

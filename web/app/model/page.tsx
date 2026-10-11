@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { BackToEstimator, DefList, Lede, Mono, PageTitle, Section } from "@/components/Prose";
 
 export const metadata: Metadata = {
-  title: "The model — hls-estimate",
+  title: "The model: hls-estimate",
   description:
     "Every assumption behind the analytical resource model, with the measured error against published hls4ml results.",
   alternates: { canonical: "/model" },
   openGraph: {
-    title: "The model — hls-estimate",
+    title: "The model: hls-estimate",
     description:
       "Every assumption behind the analytical resource model, with the measured error against published hls4ml results.",
     url: "/model",
@@ -78,7 +78,7 @@ const CALIBRATION: CalRow[] = [
 
 function errorClass(ratio: number): string {
   const err = Math.abs(ratio - 1);
-  if (err <= 0.15) return "text-signal";
+  if (err <= 0.15) return "text-ok";
   if (err <= 0.5) return "text-bone";
   return "text-over";
 }
@@ -86,17 +86,11 @@ function errorClass(ratio: number): string {
 export default function ModelPage() {
   return (
     <main className="mx-auto max-w-[860px] px-5 pb-4 pt-12 sm:px-8">
-      <p className="eyebrow">the contribution</p>
-      <h1 className="mt-3 font-mono text-[2.2rem] font-semibold leading-[1.1] tracking-tight sm:text-[2.8rem]">
-        The model,
-        <br />
-        and where it breaks
-      </h1>
-      <p className="mt-6 text-[17px] leading-relaxed text-muted">
-        The equations are simple. The assumptions behind them are the whole point, so
-        they are listed here with the error each one causes — measured against published
-        numbers, not estimated.
-      </p>
+      <PageTitle>The model, and where it breaks</PageTitle>
+      <Lede>
+        The equations are simple. The assumptions behind them matter more, so each one
+        is listed here with the error it causes, measured against published numbers.
+      </Lede>
 
       <Section title="Calibration against published results">
         <p>
@@ -107,16 +101,16 @@ export default function ModelPage() {
         <div className="mt-5 overflow-x-auto">
           <table className="w-full min-w-[600px] border-collapse font-mono text-xs">
             <thead>
-              <tr className="border-b border-edge text-left text-muted-dim">
-                <th className="py-2 pr-4 font-normal tracking-wider">reference design</th>
-                <th className="py-2 pr-4 font-normal tracking-wider">resource</th>
-                <th className="py-2 pr-4 text-right font-normal tracking-wider">
+              <tr className="border-b border-edge text-left text-muted">
+                <th className="py-2 pr-4 font-medium">reference design</th>
+                <th className="py-2 pr-4 font-medium">resource</th>
+                <th className="py-2 pr-4 text-right font-medium">
                   predicted
                 </th>
-                <th className="py-2 pr-4 text-right font-normal tracking-wider">
+                <th className="py-2 pr-4 text-right font-medium">
                   published
                 </th>
-                <th className="py-2 text-right font-normal tracking-wider">error</th>
+                <th className="py-2 text-right font-medium">error</th>
               </tr>
             </thead>
             <tbody>
@@ -128,7 +122,7 @@ export default function ModelPage() {
                     <td className="py-2.5 pr-4 text-bone">
                       {row.design}
                       {!row.independent && (
-                        <span className="ml-2 text-[10px] tracking-wide text-muted-dim">
+                        <span className="ml-2 text-[11px] text-muted-dim">
                           fitted here
                         </span>
                       )}
@@ -159,7 +153,7 @@ export default function ModelPage() {
         </p>
       </Section>
 
-      <Section title="DSP — the model that works">
+      <Section title="DSP: the model that works">
         <Formula>DSP = ceil(lanes / macs_per_dsp(bits))</Formula>
         <Formula>macs_per_dsp = &#123; 16:1, 8:1, 4:2, 2:4 &#125;</Formula>
         <p>
@@ -168,7 +162,7 @@ export default function ModelPage() {
           guard bits between them, so int4 costs exactly half the DSPs of int8 at equal
           parallelism.
         </p>
-        <Assumptions
+        <DefList
           items={[
             [
               "int8 gets one MAC per DSP, not two",
@@ -180,13 +174,13 @@ export default function ModelPage() {
             ],
             [
               "No constant folding",
-              "Multiplies by zero, ±1 or a power of two are free in real synthesis. We charge full price — most of the residual 27%.",
+              "Multiplies by zero, ±1 or a power of two are free in real synthesis. This model charges full price, which accounts for most of the residual 27%.",
             ],
           ]}
         />
       </Section>
 
-      <Section title="LUT and FF — fitted, and fragile">
+      <Section title="LUT and FF: fitted and fragile">
         <Formula>LUT = 120 + 2.75 · lanes · weight_bits + 90</Formula>
         <Formula>FF = 100 + 0.69 · lanes · (weight_bits + act_bits) + 64</Formula>
         <p>
@@ -203,13 +197,13 @@ export default function ModelPage() {
         </p>
       </Section>
 
-      <Section title="BRAM — unvalidated">
+      <Section title="BRAM: unvalidated">
         <Formula>bram18(depth, width) = ceil(width/18) · ceil(depth/1024)</Formula>
         <p>
           Weights, a line buffer and an output tile per layer, with array partitioning
           fragmenting memory so that more parallelism costs more BRAM.
         </p>
-        <p className="rounded border border-over/30 bg-over/[0.06] px-4 py-3 text-[14px] text-bone">
+        <p className="rounded bg-over/[0.1] px-4 py-3 text-[14px] text-bone">
           Neither reference design reports BRAM in a comparable form, so this number has
           never been checked against reality. It is dimensionally sane and monotonic in
           the knobs, and that is all that is tested. Do not trust it.
@@ -221,7 +215,7 @@ export default function ModelPage() {
         <p>
           Initiation interval is 1 when the loop is pipelined. Under <Mono>DATAFLOW</Mono>{" "}
           the stages run concurrently, so a graph&apos;s figure is the{" "}
-          <em>maximum</em> over its stages, not the sum — that is throughput, not
+          <em>maximum</em> over its stages, not the sum. That is throughput, not
           end-to-end latency for one inference. Real designs miss II=1 on loop-carried
           dependencies, and off-chip bandwidth is assumed free, so this is optimistic.
           Also unvalidated: it is tested only for monotonicity.
@@ -229,10 +223,10 @@ export default function ModelPage() {
       </Section>
 
       <Section title="What the tests actually prove">
-        <Assumptions
+        <DefList
           items={[
             [
-              "Bit-exact codegen — the one that carries weight",
+              "Bit-exact codegen, the test that carries weight",
               "Emitted C++ compiles as plain C++ and matches the PyTorch model exactly on random inputs. Breaking the rounding term on purpose fails 5 of its 6 cases, so it is not vacuous.",
             ],
             [
@@ -257,10 +251,10 @@ export default function ModelPage() {
 
       <Section title="Ranked fixes">
         <ol className="flex list-decimal flex-col gap-2 pl-5 marker:font-mono marker:text-muted-dim">
-          <li>Model DSP saturation and LUT spillover — fixes the 113% CNN error.</li>
+          <li>Model DSP saturation and LUT spillover. This fixes the 113% CNN error.</li>
           <li>
-            Charge logic per distinct kernel position for streamed convolutions — fixes
-            most of the 161% and 275% logic errors.
+            Charge logic per distinct kernel position for streamed convolutions. This
+            fixes most of the 161% and 275% logic errors.
           </li>
           <li>Validate BRAM against anything at all.</li>
           <li>Model accumulator width instead of assuming 64 bits.</li>
@@ -268,53 +262,18 @@ export default function ModelPage() {
         </ol>
       </Section>
 
-      <div className="mt-14 border-t border-edge pt-8">
-        <Link className="link font-mono text-sm" href="/">
-          ← back to the estimator
-        </Link>
-      </div>
+      <BackToEstimator />
     </main>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="mt-12">
-      <h2 className="font-mono text-lg font-semibold tracking-tight text-bone">
-        {title}
-      </h2>
-      <div className="mt-4 flex flex-col gap-4 text-[15px] leading-relaxed text-muted [&_em]:text-bone [&_em]:not-italic">
-        {children}
-      </div>
-    </section>
-  );
-}
 
 function Formula({ children }: { children: React.ReactNode }) {
   return (
-    <p className="rounded border border-edge bg-substrate-2 px-4 py-2.5 font-mono text-[13px] text-bone">
+    <p className="overflow-x-auto rounded bg-substrate-2 px-4 py-2.5 font-mono text-[13px] text-bone shadow-[inset_0_0_0_1px_var(--edge)]">
       {children}
     </p>
   );
 }
 
-function Assumptions({ items }: { items: [string, string][] }) {
-  return (
-    <dl className="my-1 flex flex-col gap-4 border-l border-edge pl-5">
-      {items.map(([term, body]) => (
-        <div key={term}>
-          <dt className="font-mono text-[13px] text-bone">{term}</dt>
-          <dd className="mt-1 text-[14px] leading-relaxed text-muted">{body}</dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
 
-function Mono({ children }: { children: React.ReactNode }) {
-  return (
-    <code className="rounded-[2px] bg-substrate-3 px-1.5 py-0.5 font-mono text-[13px] text-bone">
-      {children}
-    </code>
-  );
-}

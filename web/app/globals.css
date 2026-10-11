@@ -1,41 +1,63 @@
 @import "tailwindcss";
 
 /*
-  hls-estimate — visual system.
-  Subject: silicon. Substrate graphite, bone text, indigo structure, phosphor teal
-  for "this fits", amber for "this overflows". Iridescence is spent only on the
-  device floorplan; everything else stays quiet.
+  hls-estimate visual system.
+  Subject: silicon. A graphite substrate with bone text. Colour is data, never
+  decoration: three resource hues match the fabric columns on a real die (steel for
+  CLB logic, gold for DSP multipliers, orchid for block RAM), and two status hues are
+  reserved for the verdict (teal-green fits, orange over budget). Links are pale
+  steel and always underlined.
 */
 :root {
-  --substrate: #14161c;
-  --substrate-2: #1a1d25;
-  --substrate-3: #21252f;
-  --edge: #2c313d;
-  --edge-bright: #3a4152;
-  --bone: #e8e6e1;
-  --muted: #8a8f9a;
-  --muted-dim: #626874;
-  --trace: #6c7bf7;
-  --signal: #38e2c8;
-  --over: #ff9142;
+  --substrate: #131519;
+  --substrate-2: #1a1d22;
+  --substrate-3: #22262c;
+  --substrate-code: #101215;
+  --edge: #2e333b;
+  --edge-bright: #3e4550;
+  --bone: #e9e7e2;
+  --muted: #a3a8b1;
+  --muted-dim: #868c96;
 
-  --die-empty: #232833;
+  --link: #9cc7e0;
+  --ok: #4fd1a5;
+  --over: #ff7a4d;
+
+  --res-logic: #6f9cc0;
+  --res-dsp: #e0ad48;
+  --res-bram: #b98ad8;
+
+  --code-keyword: #d7a6e8;
+  --code-type: #9cc7e0;
+  --code-number: #e0ad48;
+  --code-pragma: #4fd1a5;
+  --code-preproc: #a3a8b1;
 }
 
 @theme inline {
   --color-substrate: var(--substrate);
   --color-substrate-2: var(--substrate-2);
   --color-substrate-3: var(--substrate-3);
+  --color-substrate-code: var(--substrate-code);
   --color-edge: var(--edge);
   --color-edge-bright: var(--edge-bright);
   --color-bone: var(--bone);
   --color-muted: var(--muted);
   --color-muted-dim: var(--muted-dim);
-  --color-trace: var(--trace);
-  --color-signal: var(--signal);
+  --color-link: var(--link);
+  --color-ok: var(--ok);
   --color-over: var(--over);
+  --color-res-logic: var(--res-logic);
+  --color-res-dsp: var(--res-dsp);
+  --color-res-bram: var(--res-bram);
+  --color-code-keyword: var(--code-keyword);
+  --color-code-type: var(--code-type);
+  --color-code-number: var(--code-number);
+  --color-code-pragma: var(--code-pragma);
+  --color-code-preproc: var(--code-preproc);
   --font-sans: var(--font-plex-sans);
   --font-mono: var(--font-plex-mono);
+  --font-display: var(--font-plex-condensed);
 }
 
 html {
@@ -50,32 +72,39 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
 /* Numbers must not jitter while a slider is dragged. */
 .tabular {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
 }
 
-/* Datasheet-style section marker. */
-.eyebrow {
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
-  font-size: 0.6875rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--muted-dim);
+/* Small sentence-case label for a control or a measured value. */
+.label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--muted);
 }
 
 .panel {
   background: var(--substrate-2);
-  border: 1px solid var(--edge);
-  border-radius: 4px;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 0 0 1px var(--edge),
+    0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* Fine substrate grid, like a die photo under low magnification. */
 .substrate-grid {
   background-image:
-    linear-gradient(to right, rgba(108, 123, 247, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(108, 123, 247, 0.05) 1px, transparent 1px);
+    linear-gradient(to right, rgba(233, 231, 226, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(233, 231, 226, 0.035) 1px, transparent 1px);
   background-size: 28px 28px;
 }
 
@@ -84,7 +113,7 @@ button:focus-visible,
 select:focus-visible,
 input:focus-visible,
 [tabindex]:focus-visible {
-  outline: 2px solid var(--signal);
+  outline: 2px solid var(--bone);
   outline-offset: 2px;
   border-radius: 2px;
 }
@@ -94,7 +123,7 @@ input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: 22px;
+  height: 28px;
   background: transparent;
   cursor: ew-resize;
 }
@@ -106,15 +135,14 @@ input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 12px;
-  height: 20px;
-  margin-top: -9px;
-  border-radius: 1px;
+  height: 22px;
+  margin-top: -10px;
+  border-radius: 2px;
   background: var(--bone);
-  border: 1px solid var(--substrate);
-  box-shadow: 0 0 0 1px var(--edge-bright);
+  box-shadow: 0 0 0 2px var(--substrate);
 }
 input[type="range"]:active::-webkit-slider-thumb {
-  background: var(--signal);
+  background: var(--res-dsp);
 }
 input[type="range"]::-moz-range-track {
   height: 2px;
@@ -122,14 +150,14 @@ input[type="range"]::-moz-range-track {
 }
 input[type="range"]::-moz-range-thumb {
   width: 12px;
-  height: 20px;
-  border-radius: 1px;
+  height: 22px;
+  border: 0;
+  border-radius: 2px;
   background: var(--bone);
-  border: 1px solid var(--substrate);
 }
 
 ::selection {
-  background: var(--trace);
+  background: var(--edge-bright);
   color: var(--bone);
 }
 
@@ -144,11 +172,13 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .link {
-  color: var(--trace);
+  color: var(--link);
   text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--link) 45%, transparent);
   text-underline-offset: 4px;
-  transition: color 0.15s;
+  transition: color 0.15s, text-decoration-color 0.15s;
 }
 .link:hover {
   color: var(--bone);
+  text-decoration-color: var(--bone);
 }

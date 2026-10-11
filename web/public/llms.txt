@@ -1,6 +1,6 @@
 # hls-estimate
 
-> Predict FPGA resource usage (LUT, FF, DSP, BRAM) and latency for a small quantized neural network, and generate synthesizable Vitis HLS C++ — without running synthesis. The analytical model's assumptions and measured error are written down, including the places it is 161% and 275% wrong.
+> Predict FPGA resource usage (LUT, FF, DSP, BRAM) and latency for a small quantized neural network, and generate synthesizable Vitis HLS C++, without running synthesis. The analytical model's assumptions and measured error are written down, including the places it is 161% and 275% wrong.
 
 Targets Zynq-7020, Ultra96 (ZU3EG), and PYNQ-Z2. The web estimator runs entirely in the browser; the same model ships as a Python package with a torch.fx frontend and a CLI.
 

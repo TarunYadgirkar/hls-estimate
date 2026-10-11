@@ -1,12 +1,20 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans, IBM_Plex_Sans_Condensed } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
+import { NavLinks } from "@/components/NavLinks";
 
 const plexSans = IBM_Plex_Sans({
   variable: "--font-plex-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
+  display: "swap",
+});
+
+const plexCondensed = IBM_Plex_Sans_Condensed({
+  variable: "--font-plex-condensed",
+  subsets: ["latin"],
+  weight: ["600"],
   display: "swap",
 });
 
@@ -18,7 +26,7 @@ const plexMono = IBM_Plex_Mono({
 });
 
 const SITE_URL = "https://hls-estimate.vercel.app";
-const SITE_TITLE = "hls-estimate — will it fit?";
+const SITE_TITLE = "hls-estimate: will it fit?";
 const SITE_DESCRIPTION =
   "Predict FPGA resource usage and latency for a quantized neural network, and generate synthesizable HLS C++, without running synthesis.";
 
@@ -48,65 +56,59 @@ const JSON_LD = {
 };
 
 const NAV = [
-  { href: "/", label: "estimator" },
-  { href: "/what-is-this", label: "what is this" },
-  { href: "/model", label: "the model" },
+  { href: "/", label: "Estimator" },
+  { href: "/what-is-this", label: "About" },
+  { href: "/model", label: "The model" },
 ];
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`}>
+    <html lang="en" className={`${plexSans.variable} ${plexMono.variable} ${plexCondensed.variable}`}>
       <body className="min-h-screen antialiased">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
         />
-        <header className="sticky top-0 z-50 border-b border-edge bg-substrate/85 backdrop-blur-md">
-          <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-5 py-3 sm:gap-6 sm:px-8">
+        <header className="sticky top-0 z-50 bg-substrate/90 shadow-[0_1px_0_var(--edge)] backdrop-blur-md">
+          <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-4 py-3 sm:gap-6 sm:px-8">
             <Link
               href="/"
               className="shrink-0 whitespace-nowrap font-mono text-sm font-semibold tracking-tight text-bone"
             >
-              hls<span className="text-trace">-</span>estimate
+              hls-estimate
             </Link>
-            <nav className="flex min-w-0 items-center gap-1 overflow-x-auto">
-              {NAV.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="whitespace-nowrap rounded px-2.5 py-1 font-mono text-xs text-muted transition-colors hover:bg-substrate-3 hover:text-bone"
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
+            <NavLinks items={NAV} />
             <a
               href="https://github.com/TarunYadgirkar/hls-estimate"
               target="_blank"
               rel="noreferrer noopener"
-              className="ml-auto whitespace-nowrap font-mono text-xs text-muted-dim transition-colors hover:text-bone"
+              className="ml-auto hidden whitespace-nowrap rounded px-2 py-1 text-[13px] text-muted transition-colors hover:text-bone sm:block"
             >
-              source ↗
+              Source on GitHub
             </a>
           </div>
         </header>
         {children}
-        <footer className="mt-24 border-t border-edge">
-          <div className="mx-auto flex max-w-[1400px] flex-col gap-2 px-5 py-8 font-mono text-xs text-muted-dim sm:flex-row sm:items-center sm:justify-between sm:px-8">
+        <footer className="mt-24 shadow-[0_-1px_0_var(--edge)]">
+          <div className="mx-auto flex max-w-[1400px] flex-col gap-2 px-4 py-8 text-[13px] text-muted sm:flex-row sm:items-center sm:justify-between sm:px-8">
             <p>
-              Analytical estimates. No synthesis was run — and the numbers are wrong
-              in ways that are{" "}
-              <Link
-                href="/model"
-                className="text-muted underline underline-offset-4 hover:text-bone"
-              >
+              Analytical estimates, no synthesis run. Where they are wrong, and by how
+              much, is{" "}
+              <Link href="/model" className="link">
                 written down
               </Link>
               .
             </p>
-            <p>Zynq-7020 · Ultra96 · PYNQ-Z2</p>
+            <a
+              href="https://github.com/TarunYadgirkar/hls-estimate"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="link"
+            >
+              Source on GitHub
+            </a>
           </div>
         </footer>
       </body>
