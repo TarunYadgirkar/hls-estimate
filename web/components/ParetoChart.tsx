@@ -61,18 +61,18 @@ export function ParetoChart({
   return (
     <div>
       <p className="mb-4 max-w-2xl text-[13px] leading-relaxed text-muted">
-        Every point is a configuration that fits the device. Nothing to the lower-left
-        of a point beats it on both axes — that is what makes this a Pareto front.
-        Click one to load it.
+        Every point is a configuration that fits the device, and no other configuration
+        beats it on both latency and utilisation. Select a point to load it into the
+        design controls.
       </p>
       {truncatedFrom !== null && (
-        <p className="mb-4 rounded border border-over/30 bg-over/[0.06] px-3 py-2 font-mono text-[11px] text-bone">
+        <p className="mb-4 rounded bg-over/[0.1] px-3 py-2 text-[13px] text-bone">
           Search capped: {truncatedFrom.toLocaleString("en-US")} configurations exist,
           only the first {MAX_CONFIGS.toLocaleString("en-US")} were evaluated. This
           front is not guaranteed complete.
         </p>
       )}
-      <div className="overflow-x-auto">
+      <div className="max-w-[880px] overflow-x-auto">
         <svg
           viewBox={`0 0 ${W} ${H}`}
           className="w-full min-w-[520px]"
@@ -93,7 +93,7 @@ export function ParetoChart({
                 x={PAD.left - 10}
                 y={t.y + 3.5}
                 textAnchor="end"
-                className="fill-[var(--muted-dim)] font-mono text-[10px]"
+                className="fill-[var(--muted)] font-mono text-[10px]"
               >
                 {t.label}
               </text>
@@ -105,7 +105,7 @@ export function ParetoChart({
               x={t.x}
               y={H - PAD.bottom + 16}
               textAnchor="middle"
-              className="fill-[var(--muted-dim)] font-mono text-[10px]"
+              className="fill-[var(--muted)] font-mono text-[10px]"
             >
               {t.label}
             </text>
@@ -115,7 +115,7 @@ export function ParetoChart({
             x={W / 2}
             y={H - 6}
             textAnchor="middle"
-            className="fill-[var(--muted-dim)] font-mono text-[10px]"
+            className="fill-[var(--muted)] font-mono text-[10px]"
           >
             latency (cycles, log scale) →
           </text>
@@ -124,7 +124,7 @@ export function ParetoChart({
             y={13}
             transform="rotate(-90)"
             textAnchor="middle"
-            className="fill-[var(--muted-dim)] font-mono text-[10px]"
+            className="fill-[var(--muted)] font-mono text-[10px]"
           >
             ← peak utilisation
           </text>
@@ -132,7 +132,7 @@ export function ParetoChart({
           <motion.polyline
             points={pts.map((p) => `${p.x},${p.y}`).join(" ")}
             fill="none"
-            stroke="var(--trace)"
+            stroke="var(--muted-dim)"
             strokeWidth="1"
             strokeDasharray="3 3"
             opacity={0.5}
@@ -149,8 +149,8 @@ export function ParetoChart({
                   cx={x}
                   cy={y}
                   r={hover === i ? 6.5 : isCurrent ? 5.5 : 4}
-                  fill={isCurrent ? "var(--signal)" : "var(--substrate)"}
-                  stroke={isCurrent ? "var(--signal)" : "var(--trace)"}
+                  fill={isCurrent ? "var(--bone)" : "var(--substrate)"}
+                  stroke={isCurrent ? "var(--bone)" : "var(--res-dsp)"}
                   strokeWidth="1.5"
                   initial={reduced ? false : { opacity: 0, scale: 0.4 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -164,7 +164,7 @@ export function ParetoChart({
                   className="cursor-pointer"
                   tabIndex={0}
                   role="button"
-                  aria-label={`Configuration: ${p.latency} cycles, ${pct(p.utilisation)} utilisation`}
+                  aria-label={`Load configuration: ${p.latency} cycles, ${pct(p.utilisation)} peak utilisation`}
                   onMouseEnter={() => setHover(i)}
                   onMouseLeave={() => setHover(null)}
                   onFocus={() => setHover(i)}
@@ -194,7 +194,8 @@ export function ParetoChart({
           </p>
         ) : (
           <p className="text-muted-dim">
-            {front.length} non-dominated configurations. Hover a point for its numbers.
+            {front.length} non-dominated configurations. Hover or focus a point for its
+            numbers. A filled point marks the current design when it is on the front.
           </p>
         )}
       </div>

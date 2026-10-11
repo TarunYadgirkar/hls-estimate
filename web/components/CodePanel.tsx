@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, Warning } from "@phosphor-icons/react";
 import { useState } from "react";
 
 /**
@@ -17,10 +17,10 @@ const NUMBER = /\b(\d+)\b/g;
 
 function highlight(line: string): React.ReactNode {
   if (PRAGMA.test(line)) {
-    return <span className="text-signal">{line}</span>;
+    return <span className="text-code-pragma">{line}</span>;
   }
   if (PREPROC.test(line)) {
-    return <span className="text-trace">{line}</span>;
+    return <span className="text-code-preproc">{line}</span>;
   }
   const comment = line.match(COMMENT);
   if (comment && comment.index !== undefined) {
@@ -35,9 +35,9 @@ function highlight(line: string): React.ReactNode {
   let last = 0;
   const marks: { start: number; end: number; cls: string }[] = [];
   for (const [re, cls] of [
-    [KEYWORD, "text-[#c39bf5]"],
-    [TYPE, "text-[#7fd1e8]"],
-    [NUMBER, "text-[#e8c07d]"],
+    [KEYWORD, "text-code-keyword"],
+    [TYPE, "text-code-type"],
+    [NUMBER, "text-code-number"],
   ] as const) {
     re.lastIndex = 0;
     let m: RegExpExecArray | null;
@@ -61,33 +61,44 @@ function highlight(line: string): React.ReactNode {
 }
 
 export function CodePanel({ source }: { source: string }) {
-  const [copied, setCopied] = useState(false);
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
   const lines = source.split("\n");
 
   async function copy() {
-    await navigator.clipboard.writeText(source);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1600);
+    try {
+      await navigator.clipboard.writeText(source);
+      setCopyState("copied");
+    } catch {
+      setCopyState("failed");
+    }
+    setTimeout(() => setCopyState("idle"), 1800);
   }
 
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <p className="max-w-xl text-[13px] leading-relaxed text-muted">
-          This is the real emitter&apos;s output — the pragmas below change as you move
-          the parallelism control. Weight literals are elided for reading; the CLI
-          writes them in full.
+          This is the real emitter&apos;s output. The pragmas change as you move the
+          parallelism control. Weight literals are elided for reading; the CLI writes
+          them in full.
         </p>
         <button
           type="button"
           onClick={copy}
-          className="flex shrink-0 items-center gap-1.5 rounded border border-edge bg-substrate-3 px-2.5 py-1.5 font-mono text-xs text-muted transition-colors hover:border-edge-bright hover:text-bone"
+          aria-live="polite"
+          className="flex min-h-8 shrink-0 items-center gap-1.5 rounded bg-substrate-3 px-3 py-1.5 text-[13px] font-medium text-bone shadow-[inset_0_0_0_1px_var(--edge-bright)] transition-colors hover:bg-substrate-2"
         >
-          {copied ? <Check size={12} className="text-signal" /> : <Copy size={12} />}
-          {copied ? "copied" : "copy"}
+          {copyState === "copied" && <Check size={14} className="text-ok" />}
+          {copyState === "failed" && <Warning size={14} className="text-over" />}
+          {copyState === "idle" && <Copy size={14} />}
+          {copyState === "copied"
+            ? "Copied"
+            : copyState === "failed"
+              ? "Copy blocked by the browser"
+              : "Copy C++"}
         </button>
       </div>
-      <div className="max-h-[26rem] overflow-auto rounded border border-edge bg-[#101219]">
+      <div className="max-h-[26rem] overflow-auto rounded-md bg-substrate-code shadow-[inset_0_0_0_1px_var(--edge)]">
         <pre className="p-4 font-mono text-[11.5px] leading-[1.65]">
           <code>
             {lines.map((line, i) => (

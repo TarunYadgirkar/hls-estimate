@@ -139,7 +139,7 @@ export const EXAMPLES: Record<string, Example> = {
     key: "mlp_int4",
     label: "mlp_int4",
     blurb:
-      "Two int4 dense layers. At the same parallelism this uses half the DSPs of the int8 equivalent — that is the packing model, visible.",
+      "Two int4 dense layers. At the same parallelism this uses half the DSPs of the int8 equivalent, which is the packing model at work.",
     inputShape: [1, 16],
     build: () => ({
       nodes: [
@@ -171,7 +171,7 @@ EXAMPLES.cnn_small = {
   key: "cnn_small",
   label: "cnn_small",
   blurb:
-    "A realistic CIFAR-style classifier: two conv blocks and a dense head. At full parallelism it wants 683 multiply lanes against a Zynq-7020's 220 DSPs — watch it overflow the die.",
+    "A realistic CIFAR-style classifier: two conv blocks and a dense head. At full parallelism it wants 683 multiply lanes against a Zynq-7020's 220 DSPs, so it overflows the die.",
   inputShape: [1, 3, 16, 16],
   build: () => ({
     nodes: [

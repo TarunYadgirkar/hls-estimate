@@ -23,7 +23,7 @@ export function LayerTable({
     <div className="overflow-x-auto">
       <table className="w-full min-w-[620px] border-collapse font-mono text-xs">
         <thead>
-          <tr className="border-b border-edge text-left text-muted-dim">
+          <tr className="border-b border-edge text-left text-muted">
             <Th className="text-left">layer</Th>
             <Th>lanes</Th>
             <Th>MACs</Th>
@@ -41,14 +41,14 @@ export function LayerTable({
               <tr
                 key={layer.name}
                 className={`border-b border-edge/60 transition-colors hover:bg-substrate-3/60 ${
-                  isBottleneck ? "bg-signal/[0.04]" : ""
+                  isBottleneck ? "bg-substrate-3/70" : ""
                 }`}
               >
                 <td className="py-2.5 pr-4">
                   <span className="text-bone">{layer.name}</span>
                   <span className="ml-2 text-muted-dim">{KIND_LABEL[layer.kind]}</span>
                   {isBottleneck && (
-                    <span className="ml-2 rounded-[2px] bg-signal/15 px-1.5 py-0.5 text-[10px] tracking-wide text-signal">
+                    <span className="ml-2 rounded-[2px] bg-edge-bright px-1.5 py-0.5 text-[11px] text-bone">
                       bottleneck
                     </span>
                   )}
@@ -59,7 +59,7 @@ export function LayerTable({
                 <Td>{layer.bram}</Td>
                 <Td>{compact(layer.lut)}</Td>
                 <Td>{compact(layer.ff)}</Td>
-                <Td className={isBottleneck ? "text-signal" : ""}>
+                <Td className={isBottleneck ? "font-semibold text-bone" : ""}>
                   {compact(layer.latency)}
                 </Td>
               </tr>
@@ -68,7 +68,7 @@ export function LayerTable({
         </tbody>
         <tfoot>
           <tr className="text-bone">
-            <td className="py-2.5 pr-4 text-muted-dim">total</td>
+            <td className="py-2.5 pr-4 text-muted">total</td>
             <Td />
             <Td>{compact(totals.macs)}</Td>
             <Td>{totals.dsp}</Td>
@@ -81,11 +81,10 @@ export function LayerTable({
       </table>
       <p className="mt-4 max-w-2xl text-[13px] leading-relaxed text-muted">
         Stages run concurrently under <Mono>DATAFLOW</Mono>, so the design&apos;s
-        throughput is set by its slowest stage —{" "}
-        <span className="text-signal">{bottleneck}</span> at{" "}
-        {compact(totals.latency)} cycles — not by the sum of all of them (
-        {compact(totals.latency_seq)}). Speed up anything else and the number above
-        will not move.
+        throughput is set by its slowest stage, <span className="text-bone">{bottleneck}</span>{" "}
+        at {compact(totals.latency)} cycles, and not by the sum of all stages (
+        {compact(totals.latency_seq)}). Speeding up any other stage leaves that number
+        unchanged.
       </p>
       <p className="mt-2 text-[13px] text-muted-dim">
         Share of the design&apos;s DSPs held by {bottleneck}:{" "}
@@ -101,7 +100,7 @@ export function LayerTable({
 
 function Th({ children, className = "" }: { children?: React.ReactNode; className?: string }) {
   return (
-    <th className={`py-2 pr-4 text-right font-normal tracking-wider ${className}`}>
+    <th className={`py-2 pr-4 font-medium ${className || "text-right"}`}>
       {children}
     </th>
   );

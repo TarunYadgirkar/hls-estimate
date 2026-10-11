@@ -14,6 +14,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { useMemo } from "react";
 import type { Device, ResourceKey } from "@/lib/model";
 import { capacityOf } from "@/lib/model";
+import { RESOURCE_META } from "@/lib/resources";
 
 const COLS = 34;
 const ROWS = 18;
@@ -31,17 +32,17 @@ function columnKind(col: number): ColumnKind {
   return "clb";
 }
 
-const KIND_COLOR: Record<ColumnKind, string> = {
-  clb: "var(--trace)",
-  dsp: "var(--signal)",
-  bram: "#a78bfa",
-};
-
 // Which estimate drives which column type. CLB columns carry logic (LUT+FF).
 const KIND_RESOURCE: Record<ColumnKind, ResourceKey> = {
   clb: "lut",
   dsp: "dsp",
   bram: "bram",
+};
+
+const KIND_COLOR: Record<ColumnKind, string> = {
+  clb: RESOURCE_META.lut.color,
+  dsp: RESOURCE_META.dsp.color,
+  bram: RESOURCE_META.bram.color,
 };
 
 export type FloorplanProps = {
@@ -106,7 +107,7 @@ export function Floorplan({ device, totals, fits }: FloorplanProps) {
     <figure className="relative">
       <svg
         viewBox="0 0 340 190"
-        className="w-full"
+        className="block max-h-[400px] w-full"
         role="img"
         aria-label={`Device floorplan for ${device.label}: ${
           fits ? "the design fits" : "the design does not fit"
@@ -169,13 +170,14 @@ export function Floorplan({ device, totals, fits }: FloorplanProps) {
         </g>
       </svg>
 
-      <figcaption className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-[11px] text-muted-dim">
-        <Legend color="var(--trace)" label="CLB — logic" />
-        <Legend color="var(--signal)" label="DSP — multipliers" />
-        <Legend color="#a78bfa" label="BRAM — buffers" />
+      <figcaption className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted">
+        <Legend color={KIND_COLOR.clb} label="CLB logic" />
+        <Legend color={KIND_COLOR.dsp} label="DSP multipliers" />
+        <Legend color={KIND_COLOR.bram} label="BRAM buffers" />
         {!fits && (
-          <span className="text-over">
-            overflow +{Math.round(worstOverflow * 100)}% past the die
+          <span className="flex items-center gap-1.5 text-over">
+            <span aria-hidden className="inline-block h-2 w-2 rounded-[1px] bg-over" />
+            Over budget by {Math.round(worstOverflow * 100)}%
           </span>
         )}
       </figcaption>
@@ -187,13 +189,13 @@ export function Floorplan({ device, totals, fits }: FloorplanProps) {
             <span className="text-bone">
               {formatShare(totals.dsp / device.dsp)} of the multiplier columns
             </span>{" "}
-            and {formatShare(totals.bram / device.bram18)} of the block RAM — the rest
+            and {formatShare(totals.bram / device.bram18)} of the block RAM. The rest
             of the chip is still free.
           </>
         ) : (
           <>
-            This design wants more fabric than the die has. Raise the precision, cut
-            the parallelism, or move to a larger part.
+            This design wants more fabric than the die has. Lower the weight
+            precision, cut the parallelism, or pick a larger device.
           </>
         )}
       </p>

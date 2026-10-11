@@ -1,9 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
-import { CircleCheck, TriangleAlert } from "lucide-react";
 
 import { Controls } from "@/components/Controls";
 import { Floorplan } from "@/components/Floorplan";
@@ -11,6 +9,8 @@ import { LayerTable } from "@/components/LayerTable";
 import { CodePanel } from "@/components/CodePanel";
 import { ParetoChart } from "@/components/ParetoChart";
 import { UtilBars } from "@/components/UtilBars";
+import { Verdict } from "@/components/Verdict";
+import { Workbench, type Tab } from "@/components/Workbench";
 
 import { EXAMPLES } from "@/lib/examples";
 import { emitGraph } from "@/lib/codegen";
@@ -23,19 +23,14 @@ import {
 } from "@/lib/dse";
 import {
   bindingResource,
-  capacityOf,
   DEVICES,
   estimateGraph,
   fitsDevice,
   type Graph,
 } from "@/lib/model";
-import { compact, cyclesToTime, pct } from "@/lib/format";
-
-const TABS = ["layers", "generated C++", "design space"] as const;
-type Tab = (typeof TABS)[number];
+import { compact, cyclesToTime } from "@/lib/format";
 
 export default function Home() {
-  const reduced = useReducedMotion();
   const [exampleKey, setExampleKey] = useState("conv_relu_pool");
   const [deviceKey, setDeviceKey] = useState("zynq-7020");
   const [unroll, setUnroll] = useState(16);
@@ -88,156 +83,109 @@ export default function Home() {
   }
 
   return (
-    <main className="mx-auto max-w-[1400px] px-5 pb-4 pt-8 sm:px-8">
-      {/* Hero: the instrument itself, not a banner about the instrument. */}
-      <section className="grid gap-10 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)] lg:gap-14">
-        <div>
-          <h1 className="font-mono text-[2.6rem] font-semibold leading-[1.05] tracking-tight sm:text-[3.2rem]">
-            Will it
-            <br />
-            fit?
-          </h1>
-          <p className="mt-5 max-w-md text-[15px] leading-relaxed text-muted">
-            Give hls-estimate a small quantized network and a target FPGA. It predicts
-            the LUTs, flip-flops, DSPs, block RAM and cycles you will spend — and writes
-            the synthesizable HLS C++ — without running synthesis once.
-          </p>
-
-          <div className="mt-8 border-t border-edge pt-8">
-            <Controls
-              example={example}
-              onExample={(k) => {
-                setPinned(null);
-                setExampleKey(k);
-              }}
-              device={device}
-              onDevice={setDeviceKey}
-              unroll={pinned ? Math.max(...pinned) : unroll}
-              onUnroll={setUnrollAndClear}
-              maxUnroll={maxUnroll}
-              bits={bits}
-              onBits={setBits}
-              nativeBits={nativeBits}
-            />
-            {pinned && (
-              <button
-                type="button"
-                onClick={() => setPinned(null)}
-                className="mt-4 font-mono text-xs text-trace underline underline-offset-4 hover:text-bone"
-              >
-                clear the configuration loaded from the design space
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="min-w-0">
-          <div className="panel substrate-grid p-5 sm:p-7">
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-              <div className="eyebrow">{device.label} — fabric</div>
-              <motion.div
-                key={fits ? "fits" : "over"}
-                initial={reduced ? false : { opacity: 0, y: -3 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`flex items-center gap-2 font-mono text-sm ${
-                  fits ? "text-signal" : "text-over"
-                }`}
-              >
-                {fits ? <CircleCheck size={15} /> : <TriangleAlert size={15} />}
-                {fits ? "fits" : "does not fit"}
-                <span className="text-muted-dim">
-                  · {binding.toUpperCase()} binding at{" "}
-                  {pct(estimate.totals[binding] / capacityOf(device, binding))}
-                </span>
-              </motion.div>
-            </div>
-
-            <Floorplan device={device} totals={estimate.totals} fits={fits} />
-
-            <div className="mt-7 border-t border-edge pt-6">
-              <UtilBars device={device} totals={estimate.totals} binding={binding} />
-            </div>
-
-            <dl className="mt-7 grid grid-cols-2 gap-6 border-t border-edge pt-6 sm:grid-cols-3">
-              <Stat
-                label="throughput"
-                value={`${compact(estimate.totals.latency)} cyc`}
-                sub={`${cyclesToTime(estimate.totals.latency)} at 100 MHz`}
-              />
-              <Stat
-                label="total MACs"
-                value={compact(estimate.totals.macs)}
-                sub="multiply-accumulates per inference"
-              />
-              <Stat
-                label="bottleneck"
-                value={estimate.bottleneck}
-                sub="slowest dataflow stage"
-              />
-            </dl>
-          </div>
-        </div>
+    <main className="mx-auto max-w-[1400px] px-4 pb-4 pt-8 sm:px-8 sm:pt-10">
+      <section className="grid items-end gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:gap-14">
+        <Verdict
+          exampleLabel={example.label}
+          device={device}
+          totals={estimate.totals}
+          fits={fits}
+          binding={binding}
+          bottleneck={estimate.bottleneck}
+        />
+        <p className="max-w-[60ch] text-[15px] leading-relaxed text-muted">
+          Pick a small quantized network and a target FPGA. <span className="whitespace-nowrap">hls-estimate</span> predicts the
+          LUTs, flip-flops, DSPs, block RAM and cycles it will cost, and writes the
+          synthesizable HLS C++, without running synthesis.
+        </p>
       </section>
 
-      {/* Workbench */}
-      <section className="mt-16">
-        <div className="flex flex-wrap gap-1 border-b border-edge">
-          {TABS.map((t) => (
+      <section className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-10">
+        <div className="panel h-fit p-5">
+          <h2 className="mb-5 text-sm font-semibold text-bone">Design</h2>
+          <Controls
+            example={example}
+            onExample={(k) => {
+              setPinned(null);
+              setExampleKey(k);
+            }}
+            device={device}
+            onDevice={setDeviceKey}
+            unroll={pinned ? Math.max(...pinned) : unroll}
+            onUnroll={setUnrollAndClear}
+            maxUnroll={maxUnroll}
+            bits={bits}
+            onBits={setBits}
+            nativeBits={nativeBits}
+          />
+          {pinned && (
             <button
-              key={t}
               type="button"
-              onClick={() => setTab(t)}
-              aria-current={tab === t}
-              className={`relative px-3 py-2.5 font-mono text-xs transition-colors ${
-                tab === t ? "text-bone" : "text-muted-dim hover:text-muted"
-              }`}
+              onClick={() => setPinned(null)}
+              className="link mt-5 text-left text-[13px]"
             >
-              {t}
-              {tab === t && (
-                <motion.span
-                  layoutId="tab-underline"
-                  className="absolute inset-x-0 -bottom-px h-px bg-signal"
-                  transition={{ duration: reduced ? 0 : 0.2 }}
-                />
-              )}
+              Clear the configuration loaded from the design space
             </button>
-          ))}
-        </div>
-
-        <div className="pt-7">
-          {tab === "layers" && <LayerTable graph={graph} estimate={estimate} />}
-          {tab === "generated C++" && <CodePanel source={source} />}
-          {tab === "design space" && (
-            <ParetoChart
-              front={front}
-              currentLatency={estimate.totals.latency}
-              onPick={pickPoint}
-              truncatedFrom={truncatedFrom}
-            />
           )}
         </div>
+
+        <div className="panel substrate-grid min-w-0 p-5 sm:p-7">
+          <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-sm font-semibold text-bone">{device.label} fabric</h2>
+            <p className="text-[13px] text-muted">Each column type lights up in proportion to its estimated use.</p>
+          </div>
+
+          <UtilBars device={device} totals={estimate.totals} binding={binding} />
+
+          <div className="mt-7">
+            <Floorplan device={device} totals={estimate.totals} fits={fits} />
+          </div>
+
+          <dl className="mt-7 grid grid-cols-2 gap-6 pt-6 shadow-[0_-1px_0_var(--edge)] sm:grid-cols-3">
+            <Stat
+              label="Cycles per inference"
+              value={compact(estimate.totals.latency)}
+              sub={`${cyclesToTime(estimate.totals.latency)} at 100 MHz`}
+            />
+            <Stat
+              label="Multiply-accumulates"
+              value={compact(estimate.totals.macs)}
+              sub="per inference"
+            />
+            <Stat
+              label="Slowest stage"
+              value={estimate.bottleneck}
+              sub="sets the throughput"
+            />
+          </dl>
+        </div>
       </section>
 
-      <section className="mt-20 border-t border-edge pt-8">
-        <p className="max-w-3xl text-[15px] leading-relaxed text-muted">
-          <span className="text-bone">
-            These numbers are wrong, and by how much is written down.
-          </span>{" "}
-          Against published hls4ml results the DSP estimate runs about 27% high on
-          fully-parallel designs and 113% high on a DSP-saturated CNN; the BRAM model
-          has never been validated against anything.{" "}
-          <Link
-            href="/model"
-            className="text-trace underline underline-offset-4 hover:text-bone"
-          >
+      <Workbench tab={tab} onTab={setTab}>
+        {tab === "layers" && <LayerTable graph={graph} estimate={estimate} />}
+        {tab === "generated C++" && <CodePanel source={source} />}
+        {tab === "design space" && (
+          <ParetoChart
+            front={front}
+            currentLatency={estimate.totals.latency}
+            onPick={pickPoint}
+            truncatedFrom={truncatedFrom}
+          />
+        )}
+      </Workbench>
+
+      <section className="mt-20 pt-8 shadow-[0_-1px_0_var(--edge)]">
+        <h2 className="text-base font-semibold text-bone">How wrong these numbers are</h2>
+        <p className="mt-3 max-w-[65ch] text-[15px] leading-relaxed text-muted">
+          Against published hls4ml results, the DSP estimate runs about 27% high on
+          fully parallel designs and 113% high on a DSP-saturated CNN. The BRAM model has
+          not been validated against anything yet.{" "}
+          <Link href="/model" className="link">
             Read the assumptions and the measured error
           </Link>
           , or start with{" "}
-          <Link
-            href="/what-is-this"
-            className="text-trace underline underline-offset-4 hover:text-bone"
-          >
-            what this thing is for
+          <Link href="/what-is-this" className="link">
+            what this tool is for
           </Link>
           .
         </p>
@@ -249,9 +197,9 @@ export default function Home() {
 function Stat({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
     <div>
-      <dt className="eyebrow">{label}</dt>
+      <dt className="label">{label}</dt>
       <dd className="tabular mt-1.5 font-mono text-xl text-bone">{value}</dd>
-      <dd className="mt-1 text-[12px] leading-snug text-muted-dim">{sub}</dd>
+      <dd className="mt-1 text-[13px] leading-snug text-muted-dim">{sub}</dd>
     </div>
   );
 }
